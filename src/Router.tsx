@@ -1,13 +1,20 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { HomePage } from './pages/Home.page';
+import { ListPage } from './pages/Home.page';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <HomePage />,
+    element: <ListPage />,
   },
 ]);
 
+const queryClient = new QueryClient()
+
 export function Router() {
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />;
+    </QueryClientProvider>
+  );
 }
