@@ -49,7 +49,11 @@ export const PullRequestTable = () => {
                 {data.map((row, index) => (
                     <TableTr key={index}>
                         <TableTd>{row.numero}</TableTd>
-                        <TableTd>{row.titulo}</TableTd>
+                        <TableTd>
+                            <a href={row.url.startsWith('http://') || row.url.startsWith('https://') ? row.url : `http://${row.url}`}>
+                                {row.titulo}
+                            </a>
+                        </TableTd>
                         <CriadorTd {...row} />
                         <RevisorTd {...row} />
                         <SituacaoTd {...row} />
