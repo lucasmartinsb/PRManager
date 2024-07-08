@@ -93,19 +93,31 @@ const SituacaoTd = ({ situacao, id, criador_id, revisor_id }: PullRequest) => {
     );
 }
 
-const ActionsTd = ({ id, criador_id, revisor_id, comentario }: PullRequest) => {
+const ActionsTd = (props: PullRequest) => {
+    const { data } = useGetSession();
+    const { criador_id } = props;
+
+    const ehCriador = data?.session && criador_id == data.session.user.id;
+
+    return (
+        <TableTd style={{ padding: '0', width: '1%', whiteSpace: 'nowrap', textAlign: 'center' }}>
+            <Container style={{ display: "flex", alignItems: "center", gap: "8px", padding: 0 }}>
+                <ComentarioModal {...props} />
+                {ehCriador && <DeleteButton {...props} />}
+            </Container>
+        </TableTd>
+    );
+}
+
+const ComentarioModal = ({ id, revisor_id, comentario }: PullRequest) => {
+    const { data } = useGetSession();
+
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const { mutate: removePullRequest } = useRemovePullRequest();
-    const { mutate: setComentario } = useSetComentario();
-    const { data } = useGetSession();
     const { register, handleSubmit, getValues } = useForm({ defaultValues: { comentario } });
+    const { mutate: setComentario } = useSetComentario();
 
     const toggleModal = () => setIsModalOpen(!isModalOpen);
-
-    if (!data?.session || criador_id != data.session.user.id && revisor_id != data.session.user.id) {
-        return <TableTd></TableTd>;
-    }
 
     const handleAddComment = () => {
         const { comentario } = getValues();
@@ -113,13 +125,12 @@ const ActionsTd = ({ id, criador_id, revisor_id, comentario }: PullRequest) => {
         toggleModal();
     };
 
-    if (revisor_id == data.session.user.id) {
-        return <>
-            <TableTd style={{ padding: '0', width: '1%', whiteSpace: 'nowrap', textAlign: 'center' }}>
-                <Button variant="subtle" onClick={toggleModal}>
-                    <Icon icon={commentAdd} width="16" height="16" />
-                </Button>
-            </TableTd>
+    const ehRevisor = data?.session && revisor_id == data.session.user.id;
+
+    return <>
+            <Button variant="subtle" onClick={toggleModal}>
+                <Icon icon={commentAdd} width="16" height="16" />
+            </Button>
             <Modal
                 opened={isModalOpen}
                 onClose={toggleModal}
@@ -131,23 +142,25 @@ const ActionsTd = ({ id, criador_id, revisor_id, comentario }: PullRequest) => {
                         placeholder="Digite seu comentário aqui..."
                         size='sm'
                         {...register("comentario")}
+                        disabled={!ehRevisor}
                     />
-                    <Group style={{ justifyContent: "center" }} mt="md">
+                    {ehRevisor && <Group style={{ justifyContent: "center" }} mt="md">
                         <Button type="submit" style={{
                             background: 'linear-gradient(90deg, #007cf0, #b200df)'
                         }}>Enviar</Button>
-                    </Group>
+                    </Group>}
                 </form>
             </Modal>
         </>;
-    }
+}
+
+const DeleteButton = ({id}: PullRequest) => {
+    const { mutate: removePullRequest } = useRemovePullRequest();
 
     return (
-        <TableTd style={{ padding: '0', width: '1%', whiteSpace: 'nowrap', textAlign: 'center' }}>
-            <Button variant="subtle" onClick={() => removePullRequest(id)}>
-                <Icon icon={trashCanOutline} width="16" height="16" />
-            </Button>
-        </TableTd>
+        <Button variant="subtle" onClick={() => removePullRequest(id)}>
+            <Icon icon={trashCanOutline} width="16" height="16" />
+        </Button>
     );
 }
 
@@ -185,9 +198,11 @@ const RevisorTd = ({ revisor_email, revisor_id, revisor_image, criador_id, id }:
 
 const CriadorTd = ({ criador_email, criador_image }: PullRequest) => {
     return (
-        <TableTd style={{ display: "flex", gap: 5, alignItems: "center" }}>
-            {criador_image && <Avatar src={criador_image} alt={criador_image} size={"sm"} />}
-            {criador_email}
+        <TableTd>
+            <Container style={{ display: "flex", alignItems: "center", gap: "8px", padding: 0 }}>
+                {criador_image && <Avatar src={criador_image} alt={criador_image} size={"sm"} />}
+                {criador_email}
+            </Container>
         </TableTd>
     );
 };
